@@ -554,6 +554,7 @@ static int authenticate_client(struct MHD_Connection *connection,
 	unsigned long long int downloadquota = 0;
 	int rc;
 	int ret;
+	char *reason = NULL;
 	char query_str[QUERYMAXLEN] = {0};
 	char redirect_url_enc[QUERYMAXLEN] = {0};
 	char *querystr = query_str;
@@ -596,9 +597,8 @@ static int authenticate_client(struct MHD_Connection *connection,
 			ret = encode_and_redirect_to_splashpage(connection, client, redirect_url_enc, querystr);
 			return ret;
 		}
-		rc = auth_client_auth(client->id, "client_auth", NULL);
-	} else {
-		rc = auth_client_auth(client->id, NULL, NULL);
+
+		reason = "client_auth";
 	}
 
 	// override remaining client values that might have been set by binauth
@@ -627,6 +627,8 @@ static int authenticate_client(struct MHD_Connection *connection,
 		client->upload_quota = uploadquota;
 	}
 
+
+	rc = auth_client_auth(client->id, reason, NULL);
 
 	// error checking
 	if (rc != 0) {
