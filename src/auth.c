@@ -373,33 +373,35 @@ fw_refresh_client_list(void)
 					cp1->upload_rate, uprate
 				);
 
-				if (cp1->download_rate > 0 && cp1->download_rate <= downrate && cp1->rate_exceeded == 0) {
-					//download rate has exceeded quota so deauthenticate the client
+				if (!config->traffic_control) {
+					if (cp1->download_rate > 0 && cp1->download_rate <= downrate && cp1->rate_exceeded == 0) {
+						//download rate has exceeded quota so deauthenticate the client
 
-					debug(LOG_NOTICE, "Download RATE quota reached for: %s %s, in: %llukbits/s, out: %llukbits/s",
-						cp1->ip, cp1->mac,
-						downrate,
-						uprate
-					);
+						debug(LOG_NOTICE, "Download RATE quota reached for: %s %s, in: %llukbits/s, out: %llukbits/s",
+							cp1->ip, cp1->mac,
+							downrate,
+							uprate
+						);
 
-					cp1->rate_exceeded = 1;
-					iptables_do_command("-I FORWARD -s %s -j DROP", cp1->ip);
-				} else if (cp1->upload_rate > 0 && cp1->upload_rate <= uprate && cp1->rate_exceeded == 0) {
-					//upload rate has exceeded quota so deauthenticate the client
+						cp1->rate_exceeded = 1;
+						iptables_do_command("-I FORWARD -s %s -j DROP", cp1->ip);
+					} else if (cp1->upload_rate > 0 && cp1->upload_rate <= uprate && cp1->rate_exceeded == 0) {
+						//upload rate has exceeded quota so deauthenticate the client
 
-					debug(LOG_NOTICE, "Upload RATE quota reached for: %s %s, in: %llukbits/s, out: %llukbits/s",
-						cp1->ip, cp1->mac,
-						downrate,
-						uprate
-					);
+						debug(LOG_NOTICE, "Upload RATE quota reached for: %s %s, in: %llukbits/s, out: %llukbits/s",
+							cp1->ip, cp1->mac,
+							downrate,
+							uprate
+						);
 
-					cp1->rate_exceeded = 1;
-					iptables_do_command("-I FORWARD -s %s -j DROP", cp1->ip);
-				}
+						cp1->rate_exceeded = 1;
+						iptables_do_command("-I FORWARD -s %s -j DROP", cp1->ip);
+					}
 
-				if (cp1->download_rate >= downrate && cp1->upload_rate >= uprate && cp1->rate_exceeded == 1) {
-					cp1->rate_exceeded = 0;
-					iptables_do_command("-D FORWARD -s %s -j DROP", cp1->ip);
+					if (cp1->download_rate >= downrate && cp1->upload_rate >= uprate && cp1->rate_exceeded == 1) {
+						cp1->rate_exceeded = 0;
+						iptables_do_command("-D FORWARD -s %s -j DROP", cp1->ip);
+					}
 				}
 
 				if (cp1->window_counter == 0) { // Start new window
