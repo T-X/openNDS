@@ -307,10 +307,12 @@ main(int argc, char **argv)
 	}
 
 	// Collect command line arguments then send the command
-	snprintf(args, sizeof(args), "%s", argv[i+1]);
+	// "ndsctl [-s <mysock>] cmd param1 ..." => (argc >= 3 [5])
+	if (argc > i+1) {
+		snprintf(args, sizeof(args), "%s", argv[i+1]);
 
-	if (argc > i) {
-		for (counter=2; counter < argc-1; counter++) {
+		// "ndsctl [-s <mysock>] cmd param1 param2 ..." => (argc > 3 [5])
+		for (counter=2; i+counter < argc; counter++) {
 			snprintf(argi, sizeof(argi), ",%s", argv[i+counter]);
 			strncat(args, argi, sizeof(args)-1);
 		}
